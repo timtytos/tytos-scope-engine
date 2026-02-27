@@ -58,78 +58,8 @@ Für JEDES Feature im Brief, prüfe gegen den Blueprint:
 
 **REGEL:** Wenn der Brief "Leads" sagt und NICHT Email, Telefon, Status-Pipeline, Aktivitäts-Historie, Zuweisung erwähnt — dann FEHLEN diese. Du fügst sie hinzu. Der Kunde erwartet sie, auch wenn er sie nicht hinschreibt. Ein Lead ohne Email ist kein Lead.
 
-### Schritt 3b: Obvious Features Check (NEU)
-
-Prüfe JEDEN Feature-Typ gegen die Obvious Features Matrix:
-
-**Wenn Kunde "Liste/Tabelle" sagt oder impliziert:**
-- Suche (mindestens Name/Titel)
-- Filter (Status, Kategorie, Datum)
-- Sortierung (jede sichtbare Spalte)
-- Pagination (wenn >25 Einträge möglich)
-
-**Wenn Kunde "Formular" sagt oder impliziert:**
-- Validierung mit Fehlermeldungen pro Feld
-- Pflichtfelder visuell markiert
-- Erfolgsmeldung nach Speichern
-- Loading-State am Submit-Button
-
-**Wenn Kunde "Dashboard" sagt oder impliziert:**
-- Klickbare KPI-Cards die zu Detail-Seiten führen
-- Zeitraum-Auswahl (mindestens: diese Woche, dieser Monat, dieses Jahr)
-- Trend-Indikatoren (besser/schlechter als letzte Periode)
-
-**Wenn Kunde "Profil/Account" sagt oder impliziert:**
-- Avatar/Bild-Upload
-- Passwort ändern
-- Notification-Einstellungen
-
-**Wenn Kunde "Delete" hat (implizit bei CRUD):**
-- Confirmation Dialog vor JEDER Delete-Aktion
-- Soft Delete (deleted_at statt hard delete)
-
-Ergänze fehlende Obvious Features in den jeweiligen Modulen.
-
-### Schritt 4: Scope Contract generieren (KOMPAKTES FORMAT)
-Schreibe das Ergebnis als `scope-contract.json` im Projekt-Root im kompakten Schema (siehe unten).
-
-### Schritt 4b: Test Protocol generieren (NEU — PFLICHT)
-
-Für JEDES Modul, generiere ein `test_protocol` Feld:
-
-```json
-{
-  "test_protocol": {
-    "unit": [
-      "API:POST /api/leads validates required fields (name, email)",
-      "API:POST /api/leads rejects duplicate email",
-      "API:PATCH /api/leads/:id/status validates stage transitions"
-    ],
-    "e2e": [
-      "AUTH:login -> navigate to /leads -> see empty state",
-      "CRUD:create lead with all fields -> appears in table",
-      "CRUD:delete lead -> confirm dialog -> soft deleted -> not in list",
-      "MOBILE:375px /leads -> no horizontal scroll"
-    ],
-    "security": [
-      "RLS:team user cannot update lead.assigned_to to someone else",
-      "AUTH:unauthenticated request to /api/leads returns 401"
-    ],
-    "edge": [
-      "EMPTY:new account /leads shows empty state with CTA",
-      "ERROR:API returns 500 -> error toast with retry"
-    ]
-  }
-}
-```
-
-**Regeln für Test Protocol:**
-- 1 Unit Test pro API Endpoint + 1 pro Business Rule
-- 1 E2E Test pro User Flow (Happy Path)
-- 1 Security Test pro RLS Policy
-- 1 Edge Case Test pro Edge Case aus dem Blueprint
-- Jeder Test ist ein Einzeiler den der test-engineer DIREKT in Code umsetzen kann
-- Format: `TYPE:beschreibung` — TYPE ist API, AUTH, CRUD, DRAG, FILTER, MOBILE, RLS, EMPTY, ERROR, LONG
+### Schritt 4: Scope Contract generieren
+Schreibe das Ergebnis als `scope-contract.json` ins Projekt-Root im definierten Schema (siehe unten).
 
 ### Schritt 5: Validierung
 Prüfe den fertigen Scope Contract gegen diese Checkliste:
@@ -143,159 +73,105 @@ Prüfe den fertigen Scope Contract gegen diese Checkliste:
 - [ ] Rollen und Berechtigungen sind pro Feature definiert
 - [ ] Kein Feature aus dem Original-Brief fehlt
 - [ ] enrichment_notes dokumentiert jeden Enrichment
-- [ ] **NEU:** Jedes Modul hat ein test_protocol mit min. 3 Unit + 2 E2E + 1 Security + 1 Edge
 
 ### Schritt 6: Summary schreiben
 Schreibe `scope-summary.md` ins Projekt-Root mit Übersicht der Enrichments.
 
 ---
 
-## SCOPE CONTRACT JSON SCHEMA (KOMPAKT — v2)
-
-**WICHTIG:** Der Contract muss KOMPAKT sein. Max 12.000 Tokens für ein grosses Projekt (19 Module).
+## SCOPE CONTRACT JSON SCHEMA
 
 ```json
 {
-  "project_name": "kebab-case-name",
-  "version": "2.0",
-  "stack": "a",
-  "stack_reason": "Kurzer Satz warum dieser Stack",
-  "summary": "1-2 Sätze was das Projekt ist",
-
+  "meta": {
+    "project_name": "string",
+    "version": "1.0",
+    "generated_at": "ISO-8601",
+    "brief_word_count": "number — Wörter im Original-Brief",
+    "contract_token_estimate": "number — geschätzte Tokens dieses Contracts",
+    "stack": "A|B|C|D",
+    "tech": "z.B. Next.js 15 + Supabase + Vercel + Tailwind",
+    "roles": ["admin", "team", "partner"],
+    "phases": [
+      {
+        "id": 1,
+        "name": "Foundation",
+        "modules": ["M01", "M02", "M03"]
+      }
+    ]
+  },
+  
   "shared": {
-    "auth": { "type": "email_password", "provider": "supabase", "roles": ["admin", "team"] },
-    "design_system": { "framework": "tailwind", "style": "professional", "dark_mode": false },
-    "branding": { "primary": "#hex", "secondary": "#hex", "font": "font-name" },
-    "conventions": { "language": "de", "currency": "CHF", "timezone": "Europe/Zurich" },
-    "all_views": "loading:skeleton, empty:illustration+CTA, error:toast+retry",
-    "all_forms": "validation:client+server(zod), loading:button_spinner, success:toast+redirect",
-    "all_deletes": "confirm_dialog, soft_delete",
-    "all_tables": "+id:pk, +created_at, +updated_at",
     "components": [
-      { "id": "SC01", "name": "DataTable", "used_by": ["M03", "M08"] }
+      {
+        "id": "SC01",
+        "name": "DataTable",
+        "description": "Reusable table with sort, filter, search, pagination",
+        "used_by": ["M03", "M08", "M09"]
+      }
     ],
-    "database_shared": {
-      "tables_used_by_multiple_modules": [
-        { "name": "profiles", "owner_module": "M01", "used_by": ["M02", "M03"] }
-      ]
+    "patterns": {
+      "auth": "Supabase Auth with RLS",
+      "audit": "Every mutation writes to audit_log table",
+      "soft_delete": "All entities use deleted_at instead of hard delete",
+      "timestamps": "All tables have created_at, updated_at, created_by"
+    },
+    "ui_standards": {
+      "empty_states": "Every list view has illustrated empty state with CTA",
+      "loading": "Skeleton loaders, never blank screens",
+      "errors": "Toast for actions, inline for forms, full page for 404/500",
+      "responsive": "Mobile-first, sidebar collapses to bottom nav",
+      "confirmation": "Delete actions require confirmation dialog"
     }
   },
 
   "modules": [
     {
       "id": "M01",
-      "name": "Modul-Name",
-      "priority": "must|should|nice",
-      "enrichment_notes": "Was wurde ergänzt",
-      "depends_on": [],
-      "interfaces": {
-        "exports": [{ "type": "hook|component|table", "name": "useAuth" }],
-        "imports": []
+      "name": "Modul-Name aus Brief",
+      "phase": 1,
+      "priority": "critical|high|medium|low",
+      "blueprint_used": "auth-login (Name des verwendeten Blueprints)",
+      "enrichment_notes": "Was wurde ergänzt das NICHT im Brief stand",
+      
+      "db_schema": {
+        "table_name": {
+          "fields": [
+            {"name": "id", "type": "uuid", "constraint": "PK"},
+            {"name": "field_name", "type": "type", "constraint": "constraint", "notes": "optional"}
+          ],
+          "rls": "RLS Policy Beschreibung"
+        }
       },
-
-      "db": {
-        "leads": "id:pk, name:text!, email:text!, phone:text?, status:enum(new,contacted,won,lost)!, assigned_to:fk(users)?, +timestamps, +soft_delete",
-        "lead_activities": "id:pk, lead_id:fk(leads)!, type:enum(call,email,meeting,note)!, title:text!, created_by:fk(users)!, +created_at"
-      },
-
-      "rls": {
-        "leads": "admin:all | team:read_all+write_own",
-        "lead_activities": "admin:all | team:read_all+write_own"
-      },
-
-      "views": {
-        "/leads": "DataTable(company,contact,stage_badge,assignee,value) + FilterBar(stage,assignee) + Kanban | states:default,loading,empty",
-        "/leads/:id": "Header(company,stage) + ActivityTimeline + Sidebar(contact,value) | states:default,loading,not_found",
-        "/leads/new": "Form(contact,stage,assignee,value,notes) | states:default,loading,validation_error"
-      },
-
-      "features": [
+      
+      "views": [
         {
-          "id": "F001",
-          "title": "Feature Name",
-          "source": "user|enriched",
-          "ac": [
-            "CRUD:leads(table+kanban views)",
-            "DRAG:kanban changes status + logs activity",
-            "ACTION:lead->offerte prefills contract form",
-            "AUTH:login(valid) -> redirect(/dashboard) + session_cookie",
-            "AUTH:login(wrong_password) -> error('Invalid credentials') + stay(/login)",
-            "EMPTY:/leads with 0 items -> illustration + 'Create first lead' CTA"
-          ]
+          "name": "View Name",
+          "route": "/route",
+          "components": ["Component1", "Component2"],
+          "states": ["default", "loading", "error", "empty"]
         }
       ],
-
-      "api_contracts": [
-        { "method": "GET", "path": "/api/leads", "query": "?stage=&assignee=&search=&page=&limit=", "response": "Lead[]" },
-        { "method": "POST", "path": "/api/leads", "body": "CreateLeadInput(zod)", "response": "Lead | 400:validation | 401:unauth" }
+      
+      "actions": [
+        {
+          "name": "action_name",
+          "trigger": "wie wird die Action ausgelöst",
+          "flow": "Schritt für Schritt was passiert",
+          "error_states": ["error_type_1", "error_type_2"]
+        }
       ],
-
-      "test_protocol": {
-        "unit": [
-          "API:POST /api/leads validates name+email required",
-          "API:POST /api/leads rejects duplicate email"
-        ],
-        "e2e": [
-          "CRUD:create lead -> appears in table",
-          "CRUD:delete lead -> confirm -> gone from list"
-        ],
-        "security": [
-          "RLS:team user cannot see admin-only leads",
-          "AUTH:unauthenticated -> 401"
-        ],
-        "edge": [
-          "EMPTY:no leads -> empty state with CTA",
-          "ERROR:API 500 -> toast with retry"
-        ]
-      }
+      
+      "acceptance_criteria": [
+        "Klarer, testbarer Satz — max 1 Satz pro Kriterium"
+      ],
+      
+      "depends_on": ["M00 — Module IDs von denen dieses Modul abhängt"],
+      "depended_by": ["M00 — Module IDs die von diesem Modul abhängen"]
     }
-  ],
-
-  "build_order": ["M01", "M02", "M03"],
-
-  "metadata": {
-    "generated_by": "scope-engine",
-    "timestamp": "ISO8601",
-    "source_brief_hash": "sha256...",
-    "complexity": "small|medium|large|huge",
-    "total_features": 15,
-    "total_modules": 3
-  }
+  ]
 }
 ```
-
-### Kompakt-Format Regeln:
-
-**DB Schema — Einzeiler-Notation:**
-- `name:type!` = NOT NULL
-- `name:type?` = NULLABLE
-- `name:enum(a,b,c)` = Enum-Typ
-- `name:enum(a,b,c):default` = Enum mit Default
-- `name:fk(table)` = Foreign Key
-- `name:text[]` = Array
-- `+timestamps` = created_at + updated_at automatisch
-- `+soft_delete` = deleted_at automatisch
-- `+created_at` = nur created_at
-
-**Views — Einzeiler-Notation:**
-- `Component(props)` = Verwendete Components mit Daten
-- `+ Component` = Zusätzliche Section
-- `| states:s1,s2,s3` = Benötigte View States
-
-**Acceptance Criteria — Kodierte Kurzform:**
-- `CRUD:entity(details)` = CRUD-Operationen
-- `DRAG:was passiert` = Drag & Drop Aktion
-- `LINK:a<->b via mechanism` = Verknüpfung
-- `ACTION:trigger -> result` = Spezifische Aktion
-- `AUTH:condition -> result` = Auth-Verhalten
-- `EMPTY:context -> was sichtbar` = Empty State
-- `ERROR:condition -> was passiert` = Error Handling
-- `FILTER:criteria -> result` = Filter-Verhalten
-
-**RLS — Einzeiler-Notation:**
-- `role:permission | role:permission`
-- Permissions: `all`, `read_all`, `read_own`, `write_own`, `write_all`, `none`
-- Kombinationen mit `+`: `read_all+write_own`
 
 ---
 
@@ -327,15 +203,11 @@ Schreibe `scope-summary.md` ins Projekt-Root mit Übersicht der Enrichments.
 Der Output (scope-contract.json) muss DICHTER sein als der Input (brief.md):
 - Keine Prosa. Nur strukturierte Daten.
 - Keine Erklärungen warum etwas so ist. Nur WAS gebaut wird.
-- Keine Duplikation. Shared-Block definiert Defaults, Module referenzieren sie.
+- Keine Duplikation. Shared Components einmal definieren, überall referenzieren.
 - Enum-Werte statt Fliesstext für Status, Rollen, Typen.
-- **DB-Schema als Einzeiler** — NICHT als verschachtelte JSON-Objekte pro Feld.
-- **Views als Einzeiler** — NICHT als verschachtelte Component-Arrays.
-- **AC als kodierte Kurzform** — NICHT als lange Prosa-Sätze.
-- **Shared defaults eliminieren Redundanz** — `all_views`, `all_forms`, `all_deletes` gelten global.
+- Kurze, präzise Acceptance Criteria. Max 1 Satz pro Kriterium.
 
-**ZIEL:** Brief von 6400 Wörtern → Scope Contract von **max 12.000 Tokens** der MEHR Information enthält als der Brief.
-Bei 19 Modulen: ~500-600 Tokens pro Modul + ~2000 Tokens shared/meta.
+**ZIEL:** Brief von 6400 Wörtern → Scope Contract von ~1500-2500 Tokens der MEHR Information enthält als der Brief.
 
 ---
 
@@ -346,7 +218,7 @@ claude "Lies ~/.tytos/scope-engine/prepare-scope.md als deine Instruktionen. Dan
 ```
 
 ## OUTPUT
-1. `scope-contract.json` — Der vollständige, enriched Scope Contract (KOMPAKT, max 12K Tokens)
+1. `scope-contract.json` — Der vollständige, enriched Scope Contract
 2. `scope-summary.md` — Übersicht mit:
    - Anzahl Module
    - Anzahl Features total
@@ -354,4 +226,3 @@ claude "Lies ~/.tytos/scope-engine/prepare-scope.md als deine Instruktionen. Dan
    - Top 5 kritischste Gaps die gefüllt wurden
    - Geschätzte Token-Grösse des Contracts
    - Liste aller verwendeten Blueprints
-   - Test Protocol Statistik (Tests pro Modul)

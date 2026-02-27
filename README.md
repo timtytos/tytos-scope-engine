@@ -1,4 +1,4 @@
-# TYTOS Scope Engine v2.0
+# TYTOS Scope Engine v1.0
 
 Verwandelt vage Kunden-Briefs in strukturierte, implementierbare Scope Contracts.
 
@@ -74,6 +74,7 @@ claude "Lies ~/.tytos/scope-engine/prepare-scope.md als deine Instruktionen. \
 ### 5. Pipeline starten
 
 ```bash
+# Der scope-contract.json wird von der Pipeline aufgegriffen:
 # FARM:
 claude "/farm-auto"
 
@@ -87,8 +88,8 @@ claude "/gf-auto"
 2. **Blueprints matchen** — Keywords erkennen, passende Domain Blueprints laden
 3. **Gap Analysis** — Brief vs Blueprint: Was fehlt?
 4. **Enrichen** — Fehlende Felder, Views, Workflows, Error States ergaenzen
-5. **Komprimieren** — Einzeiler-DB-Schema, kodierte ACs, max 12K Tokens
-6. **Validieren** — Checkliste: Min. 3 AC pro Modul, RLS, Dependencies, Test Protocols
+5. **Komprimieren** — Strukturiertes JSON statt Prosa, ~1500-2500 Tokens
+6. **Validieren** — Checkliste: Min. 3 AC pro Modul, RLS, Dependencies
 
 ## Goldene Regel
 
@@ -101,13 +102,6 @@ Die Scope Engine ENRICHED den Brief, sie VERAENDERT ihn nicht:
 - NIEMALS Scope aufblaahen mit nicht angedeuteten Features
 
 **Denkweise:** Der Kunde bestellt ein Haus mit 5 Zimmern. Du baust 5 Zimmer — aber mit Steckdosen, Lichtschaltern und Tuerklinken.
-
-## Kompakt-Format (v2)
-
-- DB-Schema als Einzeiler: `name:text!, email:text?, status:enum(new,active,closed)!`
-- Views als Einzeiler: `DataTable(name,email,status) + FilterBar | states:loading,empty`
-- ACs als kodierte Kurzform: `CRUD:leads(table+kanban)`, `AUTH:login(valid) -> redirect(/dashboard)`
-- RLS als Einzeiler: `admin:all | team:read_all+write_own`
 
 ## Neue Blueprints erstellen
 
