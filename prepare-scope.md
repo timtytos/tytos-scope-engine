@@ -91,7 +91,7 @@ Prüfe JEDEN Feature-Typ gegen die Obvious Features Matrix:
 Ergänze fehlende Obvious Features in den jeweiligen Modulen.
 
 ### Schritt 4: Scope Contract generieren (KOMPAKTES FORMAT)
-Schreibe das Ergebnis als `.farm/scope-contract.json` im kompakten Schema (siehe unten).
+Schreibe das Ergebnis als `scope-contract.json` im Projekt-Root im kompakten Schema (siehe unten).
 
 ### Schritt 4b: Test Protocol generieren (NEU — PFLICHT)
 
@@ -146,7 +146,7 @@ Prüfe den fertigen Scope Contract gegen diese Checkliste:
 - [ ] **NEU:** Jedes Modul hat ein test_protocol mit min. 3 Unit + 2 E2E + 1 Security + 1 Edge
 
 ### Schritt 6: Summary schreiben
-Schreibe `.farm/scope-summary.md` mit Übersicht der Enrichments.
+Schreibe `scope-summary.md` ins Projekt-Root mit Übersicht der Enrichments.
 
 ---
 
@@ -342,12 +342,12 @@ Bei 19 Modulen: ~500-600 Tokens pro Modul + ~2000 Tokens shared/meta.
 ## AUSFÜHRUNG
 
 ```bash
-claude "Lies scope-engine/prepare-scope.md als deine Instruktionen. Dann lies brief.md und alle relevanten Blueprints aus scope-engine/domains/. Generiere .farm/scope-contract.json und .farm/scope-summary.md."
+claude "Lies ~/.tytos/scope-engine/prepare-scope.md als deine Instruktionen. Dann lies brief.md und alle relevanten Blueprints aus ~/.tytos/scope-engine/domains/. Generiere scope-contract.json und scope-summary.md."
 ```
 
 ## OUTPUT
-1. `.farm/scope-contract.json` — Der vollständige, enriched Scope Contract (KOMPAKT, max 12K Tokens)
-2. `.farm/scope-summary.md` — Übersicht mit:
+1. `scope-contract.json` — Der vollständige, enriched Scope Contract (KOMPAKT, max 12K Tokens)
+2. `scope-summary.md` — Übersicht mit:
    - Anzahl Module
    - Anzahl Features total
    - Anzahl enriched Features (die ergänzt wurden)
